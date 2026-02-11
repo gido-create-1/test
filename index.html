@@ -36,13 +36,16 @@
     #confettiCanvas {
       position: fixed;
       inset: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
-      z-index: 9999;
+      z-index: 1; /* behind content */
+      background: transparent; /* ensures gradient shows through */
     }
 
     .card {
+      position: relative;
+      z-index: 2; /* above confetti */
       width: min(600px, 90vw);
       padding: 30px 24px;
       background: var(--card);
@@ -143,124 +146,6 @@
   <canvas id="confettiCanvas"></canvas>
 
   <main class="card">
-
-    <!-- THREE RED HEARTS -->
     <div class="hearts">
       <svg viewBox="0 0 32 32"><path d="M16 29s-13-8.13-13-17c0-4.42 3.58-8 8-8 3.31 0 6 2.69 6 6 0-3.31 2.69-6 6-6 4.42 0 8 3.58 8 8 0 8.87-13 17-13 17z"/></svg>
-      <svg viewBox="0 0 32 32"><path d="M16 29s-13-8.13-13-17c0-4.42 3.58-8 8-8 3.31 0 6 2.69 6 6 0-3.31 2.69-6 6-6 4.42 0 8 3.58 8 8 0 8.87-13 17-13 17z"/></svg>
-      <svg viewBox="0 0 32 32"><path d="M16 29s-13-8.13-13-17c0-4.42 3.58-8 8-8 3.31 0 6 2.69 6 6 0-3.31 2.69-6 6-6 4.42 0 8 3.58 8 8 0 8.87-13 17-13 17z"/></svg>
-    </div>
-
-    <h1>My Sweet Baby Boo, will you be my Valentine?</h1>
-
-    <section class="button-zone" id="zone">
-      <button id="yesBtn">Yes</button>
-      <button id="noBtn">No</button>
-    </section>
-
-    <div class="hint" id="hint">Click 'No' button at your own risk 😉</div>
-
-    <section class="result" id="result">
-      <h2>You said yes! 💖 I cant wait to celebrate the day with you babes</h2>
-      <img
-        class="fireworks"
-        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWE5MTNtZGI2aHk2a3FyZ3U4eHF5ZXlvNjU2ZTBhaHk5djZpZTdkeiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/eMmKqCRfEANoZDCtZU/giphy.gif"
-        alt="Celebration Hearts"
-      />
-    </section>
-  </main>
-
-  <script>
-    const zone = document.getElementById("zone");
-    const yesBtn = document.getElementById("yesBtn");
-    const noBtn = document.getElementById("noBtn");
-    const result = document.getElementById("result");
-    const hint = document.getElementById("hint");
-    const confettiCanvas = document.getElementById("confettiCanvas");
-
-    // Resize confetti canvas
-    function resizeConfettiCanvas() {
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
-      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
-      confettiCanvas.style.width = "100vw";
-      confettiCanvas.style.height = "100vh";
-    }
-    resizeConfettiCanvas();
-    window.addEventListener("resize", resizeConfettiCanvas);
-    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
-
-    // Confetti instance
-    const confettiInstance = confetti.create(confettiCanvas, { resize: false, useWorker: true });
-
-    function fullScreenConfetti() {
-      const end = Date.now() + 1600;
-      const colors = ['#ff1f68','#ff4d7d','#fff','#ffd700','#00f','#0ff','#f0f'];
-      (function frame() {
-        confettiInstance({ particleCount: 12, spread: 90, startVelocity: 45, ticks: 180, origin: { x: Math.random(), y: Math.random()*0.3 }, colors });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-      setTimeout(() => {
-        confettiInstance({ particleCount: 300, spread: 140, startVelocity: 60, ticks: 220, origin: { x: 0.5, y: 0.55 }, colors });
-      }, 300);
-    }
-
-    /* ---------- YES BUTTON GROWS ---------- */
-    let yesScale = 1.1;
-    function growYes() {
-      yesScale = Math.min(3, yesScale + 0.1);
-      yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
-    }
-
-    /* ---------- NO BUTTON SHRINKS AND RUNS AWAY ---------- */
-    let noScale = 1;
-    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
-
-    function moveNo(px, py) {
-      const zoneRect = zone.getBoundingClientRect();
-      const btnRect = noBtn.getBoundingClientRect();
-
-      let dx = (btnRect.left + btnRect.width/2) - px;
-      let dy = (btnRect.top + btnRect.height/2) - py;
-      let distance = Math.hypot(dx, dy) || 1;
-      dx /= distance; dy /= distance;
-
-      let newLeft = (btnRect.left - zoneRect.left) + dx * 150;
-      let newTop  = (btnRect.top - zoneRect.top) + dy * 150;
-
-      newLeft = clamp(newLeft, 0, zoneRect.width - btnRect.width);
-      newTop  = clamp(newTop, 0, zoneRect.height - btnRect.height);
-
-      noBtn.style.left = newLeft + "px";
-      noBtn.style.top = newTop + "px";
-
-      // Shrink the No button and grow Yes
-      noScale = Math.max(0.3, noScale - 0.05);
-      noBtn.style.transform = `translateY(-50%) scale(${noScale})`;
-      growYes();
-    }
-
-    // Pointer move detection
-    zone.addEventListener("pointermove", e => {
-      const btnRect = noBtn.getBoundingClientRect();
-      const dist = Math.hypot(
-        (btnRect.left + btnRect.width/2) - e.clientX,
-        (btnRect.top + btnRect.height/2) - e.clientY
-      );
-      if(dist < 140) moveNo(e.clientX, e.clientY);
-    });
-
-    // Prevent No button click
-    noBtn.addEventListener("click", e => e.preventDefault());
-
-    // Yes button click
-    yesBtn.addEventListener("click", () => {
-      zone.style.display = "none";
-      hint.style.display = "none";
-      result.style.display = "block";
-      resizeConfettiCanvas();
-      fullScreenConfetti();
-    });
-  </script>
-</body>
-</html>
+      <svg viewB
